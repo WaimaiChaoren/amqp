@@ -294,7 +294,7 @@ will also be closed.
 */
 func (me *Connection) Close() error {
 	defer me.shutdown(nil)
-	return me.callClose(
+	return me.call(
 		&connectionClose{
 			ReplyCode: replySuccess,
 			ReplyText: "kthxbai",
@@ -589,37 +589,6 @@ invalid and a new Channel should be opened.
 */
 func (me *Connection) Channel() (*Channel, error) {
 	return me.openChannel()
-}
-
-func (me *Connection) callClose(req message, res ...message) error {
-	// Special case for when the protocol header frame is sent insted of a
-	// request method
-	if req != nil {
-		if err := me.send(&methodFrame{ChannelId: 0, Method: req}); err != nil {
-			return err
-		}
-	}
-
-	select {
-	case err := <-me.errors:
-		return err
-	case <- time.After(time.Nanosecond * 1000000 * 300):
-		return nil
-	case msg := <-me.rpc:
-	// Try to match one of the result types
-		for _, try := range res {
-			if reflect.TypeOf(msg) == reflect.TypeOf(try) {
-				// *res = *msg
-				vres := reflect.ValueOf(try).Elem()
-				vmsg := reflect.ValueOf(msg).Elem()
-				vres.Set(vmsg)
-				return nil
-			}
-		}
-		return ErrCommandInvalid
-	}
-
-	panic("unreachable")
 }
 
 func (me *Connection) call(req message, res ...message) error {
