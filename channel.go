@@ -8,6 +8,7 @@ package amqp
 import (
 	"reflect"
 	"sync"
+	"time"
 )
 
 // 0      1         3             7                  size+7 size+8
@@ -137,6 +138,41 @@ func (me *Channel) shutdown(e *Error) {
 
 func (me *Channel) open() error {
 	return me.call(&channelOpen{}, &channelOpenOk{})
+}
+
+func (me *Channel) callClose(req message, res ...message) error {
+	if err := me.send(me, req); err != nil {
+		return err
+	}
+
+	if req.wait() {
+		select {
+		case e := <-me.errors:
+			return e
+
+		case <- time.After(time.Nanosecond * 1000000 * 300):
+			return nil
+		case msg := <-me.rpc:
+			if msg != nil {
+				for _, try := range res {
+					if reflect.TypeOf(msg) == reflect.TypeOf(try) {
+						// *res = *msg
+						vres := reflect.ValueOf(try).Elem()
+						vmsg := reflect.ValueOf(msg).Elem()
+						vres.Set(vmsg)
+						return nil
+					}
+				}
+				return ErrCommandInvalid
+			} else {
+				// RPC channel has been closed without an error, likely due to a hard
+				// error on the Connection.  This indicates we have already been
+				// shutdown and if were waiting, will have returned from the errors chan.
+				return ErrClosed
+			}
+		}
+	}
+	return nil
 }
 
 // Performs a request/response call for when the message is not NoWait and is
@@ -401,7 +437,7 @@ It is safe to call this method multiple times.
 */
 func (me *Channel) Close() error {
 	defer me.connection.closeChannel(me, nil)
-	return me.call(
+	return me.callClose(
 		&channelClose{ReplyCode: replySuccess},
 		&channelCloseOk{},
 	)
