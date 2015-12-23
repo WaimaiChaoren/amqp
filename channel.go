@@ -132,7 +132,7 @@ func (me *Channel) shutdown(e *Error) {
 		}
 
 		me.noNotify = true
-		close(me.rpc)
+		// close(me.rpc)
 	})
 }
 
