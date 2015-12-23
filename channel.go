@@ -8,6 +8,7 @@ package amqp
 import (
 	"reflect"
 	"sync"
+	"time"
 )
 
 // 0      1         3             7                  size+7 size+8
@@ -150,7 +151,8 @@ func (me *Channel) call(req message, res ...message) error {
 		select {
 		case e := <-me.errors:
 			return e
-
+		case <- time.After(time.Second):
+			return ErrTimeout
 		case msg := <-me.rpc:
 			if msg != nil {
 				for _, try := range res {
