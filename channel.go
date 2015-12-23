@@ -8,7 +8,6 @@ package amqp
 import (
 	"reflect"
 	"sync"
-	"time"
 )
 
 // 0      1         3             7                  size+7 size+8
