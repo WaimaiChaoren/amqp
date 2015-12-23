@@ -367,6 +367,8 @@ func (me *Connection) shutdown(err *Error) {
 		me.m.Lock()
 		me.noNotify = true
 		me.m.Unlock()
+
+		close(me.rpc)
 	})
 }
 
@@ -462,13 +464,13 @@ func (me *Connection) reader(r io.Reader) {
 
 	for {
 		frame, err := frames.ReadFrame()
-
 		if err != nil {
 			me.shutdown(&Error{Code: FrameError, Reason: err.Error()})
 			return
 		}
 
 		me.demux(frame)
+
 
 		if haveDeadliner {
 			me.deadlines <- conn

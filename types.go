@@ -23,6 +23,7 @@ var (
 	ErrCommandInvalid  = &Error{Code: CommandInvalid, Reason: "unexpected command received"}
 	ErrUnexpectedFrame = &Error{Code: UnexpectedFrame, Reason: "unexpected frame received"}
 	ErrFieldType       = &Error{Code: SyntaxError, Reason: "unsupported table field type"}
+	ErrTimeout      	= &Error{Code: Timeout, Reason: "timeout at call"}
 )
 
 // Error captures the code and reason a channel or connection has been closed

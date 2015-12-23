@@ -44,6 +44,7 @@ const (
 	NotAllowed         = 530
 	NotImplemented     = 540
 	InternalError      = 541
+	Timeout			= 542
 )
 
 func isSoftExceptionCode(code int) bool {
