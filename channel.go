@@ -169,8 +169,8 @@ func (me *Channel) call(req message, res ...message) error {
 				// shutdown and if were waiting, will have returned from the errors chan.
 				return ErrClosed
 			}
-		case <- time.After(5 * time.Second):
-			return nil
+//		case <- time.After(5 * time.Second):
+//			return nil
 		}
 	}
 

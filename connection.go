@@ -368,7 +368,9 @@ func (me *Connection) shutdown(err *Error) {
 		me.noNotify = true
 		me.m.Unlock()
 
+
 		//close(me.rpc)
+
 	})
 }
 
