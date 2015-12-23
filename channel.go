@@ -151,8 +151,6 @@ func (me *Channel) call(req message, res ...message) error {
 		select {
 		case e := <-me.errors:
 			return e
-		case <- time.After(time.Second):
-			return ErrTimeout
 		case msg := <-me.rpc:
 			if msg != nil {
 				for _, try := range res {
@@ -171,6 +169,8 @@ func (me *Channel) call(req message, res ...message) error {
 				// shutdown and if were waiting, will have returned from the errors chan.
 				return ErrClosed
 			}
+		case <- time.After(5 * time.Second):
+			return nil
 		}
 	}
 
